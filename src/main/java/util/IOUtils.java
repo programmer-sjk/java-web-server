@@ -20,14 +20,6 @@ public class IOUtils {
         return String.copyValueOf(body);
     }
 
-    public static String getUrl(String data) {
-        return split(data)[1];
-    }
-
-    private static String[] split(String data) {
-        return data.split(" ");
-    }
-
     public static byte[] getFile(String path) throws IOException {
         return Files.readAllBytes(new File("./webapp" + path).toPath());
     }
