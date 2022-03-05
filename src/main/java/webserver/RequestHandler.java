@@ -31,6 +31,7 @@ public class RequestHandler extends Thread {
             String[] httpHeaders = HttpRequestUtils.parseHeader(br);
             String method = httpHeaders[0];
             String url = httpHeaders[1];
+            boolean isLogin = false;
 
 //            HttpRequestUtils.printHttpHeader(br);
             if (method.equals("GET")) {
@@ -46,15 +47,17 @@ public class RequestHandler extends Thread {
                 Map<String, String> qs = HttpRequestUtils.parseQueryString(body);
                 User user = new User(qs.get("userId"), qs.get("password"), qs.get("name"), qs.get("email"));
                 System.out.println(user);
+                isLogin = true;
             }
-
-
-
 
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = "Hello World".getBytes();
 
-            if (url.length() > 1) {
+            if (isLogin) {
+                response302Header(dos, body.length);
+            }
+
+            if (url.contains(".html")) {
                 body = IOUtils.getFile(url);
             }
 
@@ -70,6 +73,16 @@ public class RequestHandler extends Thread {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response302Header(DataOutputStream dos, int lengthOfBodyContent) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 OK \r\n");
+            dos.writeBytes("Location: http://localhost:8080/index.html \r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
