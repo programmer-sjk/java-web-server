@@ -11,7 +11,33 @@ import com.google.common.collect.Maps;
 
 public class HttpRequestUtils {
 
-    public static void printHttpHeader(BufferedReader br, String line) throws IOException {
+    public static String[] parseHeader(BufferedReader br) throws IOException {
+        String firstHeader = br.readLine();
+        System.out.println(firstHeader);
+        return UrlUtils.split(firstHeader);
+    }
+
+    public static int contentLength(BufferedReader br) throws IOException {
+        int contentLength = 0;
+        String line = br.readLine();
+        while(!"".equals(line)) {
+            if (line == null) {
+                break;
+            }
+
+            if (line.contains("Content-Length")) {
+                String temp = line.split(":")[1].trim();
+                contentLength =  Integer.parseInt(temp);
+            }
+
+            line = br.readLine();
+        }
+
+        return contentLength;
+    }
+
+    public static void printHttpHeader(BufferedReader br) throws IOException {
+        String line = br.readLine();
         while(!"".equals(line)) {
             if (line == null) {
                 return ;

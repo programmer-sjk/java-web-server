@@ -10,7 +10,7 @@ public class UrlUtils {
         return url.substring(qsIndex + 1);
     }
 
-    private static String[] split(String data) {
+    public static String[] split(String data) {
         return data.split(" ");
     }
 }

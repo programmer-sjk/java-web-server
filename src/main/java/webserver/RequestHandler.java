@@ -28,24 +28,35 @@ public class RequestHandler extends Thread {
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 
-            String line = br.readLine();
-            String url = UrlUtils.getUrl(line);
-            String queryString = UrlUtils.getQueryString(url);
-            Map<String, String> qs = HttpRequestUtils.parseQueryString(queryString);
-            User user = new User(qs.get("userId"), qs.get("password"), qs.get("name"), qs.get("email"));
-            System.out.println(url);
-            System.out.println(user);
+            String[] httpHeaders = HttpRequestUtils.parseHeader(br);
+            String method = httpHeaders[0];
+            String url = httpHeaders[1];
+
+//            HttpRequestUtils.printHttpHeader(br);
+            if (method.equals("GET")) {
+                String queryString = UrlUtils.getQueryString(url);
+                Map<String, String> qs = HttpRequestUtils.parseQueryString(queryString);
+                User user = new User(qs.get("userId"), qs.get("password"), qs.get("name"), qs.get("email"));
+                System.out.println(user);
+            }
+
+            if (method.equals("POST")) {
+                int contentLength = HttpRequestUtils.contentLength(br);
+                String body = IOUtils.readData(br, contentLength);
+                Map<String, String> qs = HttpRequestUtils.parseQueryString(body);
+                User user = new User(qs.get("userId"), qs.get("password"), qs.get("name"), qs.get("email"));
+                System.out.println(user);
+            }
 
 
 
-            //HttpRequestUtils.printHttpHeader(br, line);
 
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = "Hello World".getBytes();
 
-//            if (url.length() > 1) {
-//                body = IOUtils.getFile(url);
-//            }
+            if (url.length() > 1) {
+                body = IOUtils.getFile(url);
+            }
 
             response200Header(dos, body.length);
             responseBody(dos, body);
