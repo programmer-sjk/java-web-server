@@ -36,6 +36,25 @@ public class HttpRequestUtils {
         return contentLength;
     }
 
+    public static String cookie(BufferedReader br) throws IOException {
+        String cookie = null;
+        String line = br.readLine();
+        while(!"".equals(line)) {
+            if (line == null) {
+                break;
+            }
+
+            if (line.contains("Cookie")) {
+                cookie = line.split(":")[1].trim();
+                break;
+            }
+
+            line = br.readLine();
+        }
+
+        return cookie;
+    }
+
     public static void printHttpHeader(BufferedReader br) throws IOException {
         String line = br.readLine();
         while(!"".equals(line)) {
