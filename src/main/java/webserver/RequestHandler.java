@@ -85,21 +85,22 @@ public class RequestHandler extends Thread {
             }
 
 
-            if (url.contains(".html")) {
+            if (url.contains(".html") || url.contains(".css")) {
                 resBody = IOUtils.getFile(url);
             }
 
-            response200Header(dos, resBody.length, isLogin);
+            response200Header(dos, resBody.length, isLogin, url.contains(".css"));
             responseBody(dos, resBody);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, boolean isLogin) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, boolean isLogin, boolean isCss) {
+        String type = isCss ? "text/css" : "text/html";
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: " + type + ";charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("Set-Cookie: logined=" + isLogin + "\r\n");
             dos.writeBytes("\r\n");
