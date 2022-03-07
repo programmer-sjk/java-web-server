@@ -139,78 +139,6 @@ public class RequestHandler extends Thread {
         }
     }
 
-    public void myRun() {
-        log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
-                connection.getPort());
-
-        try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-            BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-            byte[] resBody = "Hello World".getBytes();
-
-            String[] httpHeaders = HttpRequestUtils.parseHeader(br);
-            String method = httpHeaders[0];
-            String url = httpHeaders[1];
-
-//            HttpRequestUtils.printHttpHeader(br);
-            DataOutputStream dos = new DataOutputStream(out);
-
-            if (url.equals("/user/create")) {
-                String body = null;
-                if (method.equals("GET")) {
-                    body = UrlUtils.getQueryString(url);
-                }
-
-                if (method.equals("POST")) {
-                    int contentLength = HttpRequestUtils.contentLength(br);
-                    body = IOUtils.readData(br, contentLength);
-                }
-
-                Map<String, String> qs = HttpRequestUtils.parseQueryString(body);
-                User user = new User(qs.get("userId"), qs.get("password"), qs.get("name"), qs.get("email"));
-                DataBase.addUser(user);
-
-                response302Header(dos, "http://localhost:8080/index.html");
-            }
-
-            boolean isLogin = false;
-            if (url.equals("/user/login")) {
-                int contentLength = HttpRequestUtils.contentLength(br);
-                String body = IOUtils.readData(br, contentLength);
-                Map<String, String> qs = HttpRequestUtils.parseQueryString(body);
-                User user = DataBase.findUserById(qs.get("userId"));
-                System.out.println(user);
-                if (user != null) {
-                    isLogin = true;
-                }
-            }
-
-            if (url.equals("/user/list")) {
-                String cookie = HttpRequestUtils.cookie(br);
-                Map<String, String> cookieQs = HttpRequestUtils.parseCookies(cookie);
-                if(Boolean.parseBoolean(cookieQs.get("logined"))) {
-                    StringBuilder sb = new StringBuilder();
-                    Collection<User> users = DataBase.findAll();
-                    users.forEach((user) -> sb.append(user.toString()));
-                    System.out.println(sb.toString());
-                    resBody = sb.toString().getBytes();
-
-                } else {
-                    response302Header(dos, "http://localhost:8080/user/login.html");
-                }
-            }
-
-
-            if (url.contains(".html") || url.contains(".css")) {
-                resBody = IOUtils.getFile(url);
-            }
-
-            myResponse200Header(dos, resBody.length, isLogin, url.contains(".css"));
-            responseBody(dos, resBody);
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
@@ -227,19 +155,6 @@ public class RequestHandler extends Thread {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void myResponse200Header(DataOutputStream dos, int lengthOfBodyContent, boolean isLogin, boolean isCss) {
-        String type = isCss ? "text/css" : "text/html";
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: " + type + ";charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("Set-Cookie: logined=" + isLogin + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
