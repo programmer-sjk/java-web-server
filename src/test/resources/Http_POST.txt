@@ -1,0 +1,8 @@
+POST /user/create HTTP/1.1
+HOST: localhost:8080
+Connection: keep-alive
+Content-Length: 45
+Content-Type: application/x-www-form-urlencoded
+Accept: */*
+
+userId=seo&password=password&name=seojeongkuk

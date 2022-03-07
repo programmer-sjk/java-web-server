@@ -1,0 +1,5 @@
+GET /user/create?userId=seo&password=password&name=seojeongkuk HTTP/1.1
+HOST: localhost:8080
+Connection: keep-alive
+Accept: */*
+
