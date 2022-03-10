@@ -17,7 +17,7 @@ public class HttpRequest {
         BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         String[] requests = br.readLine().split(" ");
         this.method = requests[0];
-        this.path = this.parsePath(requests[1]);
+        this.path = parsePath(requests[1]);
         this.headers = parseHeader(br);
         this.parameters = parseParameter(br, requests[1]);
     }
@@ -25,8 +25,7 @@ public class HttpRequest {
     private String parsePath(String url) {
         if (this.isGetMethod()) {
             int idx = url.indexOf("?");
-            System.out.println(url.substring(0, idx -1));
-            return url.substring(0, idx -1);
+            return url.substring(0, idx);
         }
         return url;
     }
@@ -48,9 +47,6 @@ public class HttpRequest {
         if (this.isGetMethod()) {
             int idx = url.indexOf("?");
             body = url.substring(idx + 1);
-            System.out.println(idx);
-            System.out.println(url.substring(idx + 1, url.length()));
-            System.out.println(body);
         }
 
         if (this.isPostMethod()) {
@@ -62,11 +58,11 @@ public class HttpRequest {
     }
 
     private boolean isGetMethod() {
-        return this.method == "GET";
+        return this.method.equals("GET");
     }
 
     private boolean isPostMethod() {
-        return this.method == "POST";
+        return this.method.equals("POST");
     }
 
     public String getMethod() {
