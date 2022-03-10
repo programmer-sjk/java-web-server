@@ -22,10 +22,34 @@ public class HttpRequest {
         this.parameters = parseParameter(br, requests[1]);
     }
 
+    private boolean isGetMethod() {
+        return this.method.equals("GET");
+    }
+
+    private boolean isPostMethod() {
+        return this.method.equals("POST");
+    }
+
+    public String getMethod() {
+        return this.method;
+    }
+
+    public String getPath() {
+        return this.path;
+    }
+
+    public String getHeader(String headerName) {
+        return this.headers.get(headerName);
+    }
+
+    public String getParameter(String paramName) {
+        return this.parameters.get(paramName);
+    }
+
     private String parsePath(String url) {
         if (this.isGetMethod()) {
             int idx = url.indexOf("?");
-            return url.substring(0, idx);
+            return idx == -1 ? url : url.substring(0, idx);
         }
         return url;
     }
@@ -55,29 +79,5 @@ public class HttpRequest {
         }
 
         return HttpRequestUtils.parseQueryString(body);
-    }
-
-    private boolean isGetMethod() {
-        return this.method.equals("GET");
-    }
-
-    private boolean isPostMethod() {
-        return this.method.equals("POST");
-    }
-
-    public String getMethod() {
-        return this.method;
-    }
-
-    public String getPath() {
-        return this.path;
-    }
-
-    public String getHeader(String headerName) {
-        return this.headers.get(headerName);
-    }
-
-    public String getParameter(String paramName) {
-        return this.parameters.get(paramName);
     }
 }

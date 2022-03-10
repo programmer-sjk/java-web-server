@@ -14,10 +14,12 @@ public class HttpResponse {
     private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
     private OutputStream out;
     private DataOutputStream dos;
+    private boolean logined;
 
     public HttpResponse(OutputStream out) throws IOException {
         this.out = out;
         this.dos = new DataOutputStream(out);
+        this.logined = false;
     }
 
     public void forward(String url) throws IOException {
@@ -30,30 +32,18 @@ public class HttpResponse {
     public void sendRedirect(String url) {
         try {
             DataOutputStream dos = new DataOutputStream(this.out);
-            dos.writeBytes("HTTP/1.1 302 OK \r\n");
-            dos.writeBytes("Location: " + url + "\r\n");
-            dos.writeBytes("\r\n");
+            this.dos.writeBytes("HTTP/1.1 302 OK \r\n");
+            if (this.logined) {
+                dos.writeBytes("Set-Cookie: logined=true \r\n");
+            }
+            this.dos.writeBytes("Location: " + url + "\r\n");
+            this.dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    public void addHeader(String key, String value) throws IOException {
-        this.dos.writeBytes(key + ": " + value + "\r\n");
-    }
-
-    private void response302LoginSuccessHeader(DataOutputStream dos) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Set-Cookie: logined=true \r\n");
-            dos.writeBytes("Location: /index.html \r\n");
-            dos.writeBytes("\r\n");
-        } catch(IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void response200Header(int lengthOfBodyContent) {
+    public void response200Header(int lengthOfBodyContent) {
         try {
             this.dos.writeBytes("HTTP/1.1 200 OK \r\n");
             this.dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
@@ -64,18 +54,18 @@ public class HttpResponse {
         }
     }
 
-    private void response200CssHeader(DataOutputStream dos, int lengthOfBodyContent) {
+    public void response200CssHeader(int lengthOfBodyContent) {
         try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
+            this.dos.writeBytes("HTTP/1.1 200 OK \r\n");
+            this.dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
+            this.dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            this.dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void responseBody(byte[] body) {
+    public void responseBody(byte[] body) {
         try {
             this.dos.write(body, 0, body.length);
             this.dos.flush();
@@ -84,4 +74,11 @@ public class HttpResponse {
         }
     }
 
+    public void addHeader(String key, String value) throws IOException {
+        this.dos.writeBytes(key + ": " + value + "\r\n");
+    }
+
+    public void setLogin(boolean logined) {
+        this.logined = logined;
+    }
 }
