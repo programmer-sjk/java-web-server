@@ -13,7 +13,6 @@ public class HttpRequestUtils {
 
     public static String[] parseHeader(BufferedReader br) throws IOException {
         String firstHeader = br.readLine();
-        System.out.println(firstHeader);
         return UrlUtils.split(firstHeader);
     }
 
@@ -62,7 +61,6 @@ public class HttpRequestUtils {
                 return ;
             }
 
-            System.out.println(line);
             line = br.readLine();
         }
     }

@@ -2,13 +2,9 @@ package webserver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.HttpRequestUtils;
-import util.IOUtils;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
 
 public class HttpResponse {
     private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
@@ -80,5 +76,9 @@ public class HttpResponse {
 
     public void setLogin(boolean logined) {
         this.logined = logined;
+    }
+
+    public boolean isLogin() {
+        return this.logined;
     }
 }

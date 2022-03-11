@@ -1,13 +1,12 @@
 package webserver;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import db.DataBase;
 import model.User;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 import util.IOUtils;
 import util.UrlUtils;
+import webserver.Controllers.CreateUserController;
 
 import javax.xml.crypto.Data;
 
@@ -23,55 +23,40 @@ public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
     private Socket connection;
+    private Map<String, String> controllerMap;
 
     public RequestHandler(Socket connectionSocket) {
         this.connection = connectionSocket;
+        this.controllerMap = new HashMap<String, String>();
+    }
+    public void initControllers() {
+        controllerMap.put("/user/create", "webserver.Controllers.CreateUserController");
+        controllerMap.put("/user/list", "webserver.Controllers.ListUserController");
+        controllerMap.put("/user/login", "webserver.Controllers.LoginController");
     }
 
     public void run() {
         log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
                 connection.getPort());
+        this.initControllers();
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             HttpRequest req = new HttpRequest(in);
             HttpResponse res = new HttpResponse(out);
 
             String url = req.getPath();
-            boolean logined = isLogin(req.getHeader("Cookie"));
-            res.setLogin(logined);
+            String controllerName = controllerMap.get(url);
 
-            if ("/user/create".equals(url)) {
-                User user = new User(
-                    req.getParameter("userId"),
-                    req.getParameter("password"),
-                    req.getParameter("name"),
-                    req.getParameter("email")
-                );
-                DataBase.addUser(user);
-                res.sendRedirect("/index.html");
-            } else if ("/user/login".equals(url)) {
-                User user = DataBase.findUserById(req.getParameter("userId"));
-                if (user == null) {
-                    res.forward("/user/login_failed.html");
-                    return ;
-                }
+            if (controllerName != null) {
+                boolean logined = isLogin(req.getHeader("Cookie"));
+                res.setLogin(logined);
 
-                res.setLogin(true);
-                res.sendRedirect("/index.html");
-            } else if ("/user/list".equals(url)) {
-                if (!logined) {
-                    res.forward("/user/login.html");
-                    return ;
-                }
-                Collection<User> users = DataBase.findAll();
-                StringBuilder sb = new StringBuilder();
-                for(User user: users) {
-                    sb.append(user);
-                }
+                Class<?> controllerClass = Class.forName(controllerName);
+                Constructor<?> constructor = controllerClass.getConstructor(null);
+                Object object = constructor.newInstance();
 
-                byte[] body = sb.toString().getBytes();
-                res.response200Header(body.length);
-                res.responseBody(body);
+                Method method = controllerClass.getDeclaredMethod("service", req.getClass(), res.getClass());
+                method.invoke(object, req, res);
             } else if (url.endsWith(".css")) {
                 byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
                 res.response200CssHeader(body.length);
@@ -81,6 +66,8 @@ public class RequestHandler extends Thread {
             }
         } catch (IOException e) {
             log.error(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

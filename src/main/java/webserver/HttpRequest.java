@@ -22,11 +22,11 @@ public class HttpRequest {
         this.parameters = parseParameter(br, requests[1]);
     }
 
-    private boolean isGetMethod() {
+    public boolean isGetMethod() {
         return this.method.equals("GET");
     }
 
-    private boolean isPostMethod() {
+    public boolean isPostMethod() {
         return this.method.equals("POST");
     }
 
