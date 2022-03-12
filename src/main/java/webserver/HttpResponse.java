@@ -8,12 +8,10 @@ import java.nio.file.Files;
 
 public class HttpResponse {
     private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
-    private OutputStream out;
     private DataOutputStream dos;
     private boolean logined;
 
     public HttpResponse(OutputStream out) throws IOException {
-        this.out = out;
         this.dos = new DataOutputStream(out);
         this.logined = false;
     }
@@ -27,7 +25,6 @@ public class HttpResponse {
 
     public void sendRedirect(String url) {
         try {
-            DataOutputStream dos = new DataOutputStream(this.out);
             this.dos.writeBytes("HTTP/1.1 302 OK \r\n");
             if (this.logined) {
                 dos.writeBytes("Set-Cookie: logined=true \r\n");

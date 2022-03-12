@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HttpRequest {
-    private String method;
+    private HttpMethod method;
     private String path;
     private Map<String, String> headers;
     private Map<String, String> parameters;
@@ -16,21 +16,17 @@ public class HttpRequest {
     public HttpRequest(InputStream in) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         String[] requests = br.readLine().split(" ");
-        this.method = requests[0];
+        this.method = HttpMethod.valueOf(requests[0]);
         this.path = parsePath(requests[1]);
         this.headers = parseHeader(br);
         this.parameters = parseParameter(br, requests[1]);
     }
 
-    public boolean isGetMethod() {
-        return this.method.equals("GET");
-    }
+    public boolean isGetMethod() { return method == HttpMethod.GET; }
 
-    public boolean isPostMethod() {
-        return this.method.equals("POST");
-    }
+    public boolean isPostMethod() { return method == HttpMethod.POST; }
 
-    public String getMethod() {
+    public HttpMethod getMethod() {
         return this.method;
     }
 
@@ -44,6 +40,15 @@ public class HttpRequest {
 
     public String getParameter(String paramName) {
         return this.parameters.get(paramName);
+    }
+
+    public boolean isLogin() {
+        Map<String, String> cookies = HttpRequestUtils.parseCookies(getHeader("Cookie"));
+        String value = cookies.get("logined");
+        if (value == null) {
+            return false;
+        }
+        return Boolean.parseBoolean(value);
     }
 
     private String parsePath(String url) {

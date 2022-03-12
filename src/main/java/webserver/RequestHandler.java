@@ -48,7 +48,7 @@ public class RequestHandler extends Thread {
             String controllerName = controllerMap.get(url);
 
             if (controllerName != null) {
-                boolean logined = isLogin(req.getHeader("Cookie"));
+                boolean logined = req.isLogin();
                 res.setLogin(logined);
 
                 Class<?> controllerClass = Class.forName(controllerName);
@@ -69,14 +69,5 @@ public class RequestHandler extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean isLogin(String cookie) {
-        Map<String, String> cookies = HttpRequestUtils.parseCookies(cookie);
-        String value = cookies.get("logined");
-        if (value == null) {
-            return false;
-        }
-        return Boolean.parseBoolean(value);
     }
 }
